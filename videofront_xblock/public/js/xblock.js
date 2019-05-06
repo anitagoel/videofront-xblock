@@ -1,9 +1,8 @@
 function VideofrontXBlock(runtime, element, args) {
-  'use strict';
     $(window).resize(function () {
       $('#tscript').height($('#video-cont').outerHeight(true));
     });
-
+    avg_watch_time = args.avg_watch_time;
     console.log("videojs:", videojs);
 
     // Create player function
@@ -38,6 +37,7 @@ function VideofrontXBlock(runtime, element, args) {
           showTranscript(track_showing);
         $('.transcript-toggle', element).text("Disable Transcript");
       }
+      sendControlsAnalytics("0,0,0,0,0,1,0,0,0,0,0");
     });
     player.one('loadedmetadata', function() {
       var tracks = player.textTracks();
@@ -57,6 +57,8 @@ function VideofrontXBlock(runtime, element, args) {
         if (!enableTranscript) {
           disableTranscript();
         }
+
+        sendControlsAnalytics("0,0,0,0,1,0,0,0,0,0,0");
       });
 
       // Highlight current cue
@@ -148,48 +150,6 @@ function VideofrontXBlock(runtime, element, args) {
       playVideoIfVisible();
     });
 
-    // Listen to events
-    var logTimeOnEvent = function(eventName, logEventName, currentTimeKey, data) {
-      player.on(eventName, function() {
-        logTime(logEventName, data, currentTimeKey);
-      });
-    };
-    var logTime = function(logEventName, data, currentTimeKey) {
-      data = data || {};
-      currentTimeKey = currentTimeKey || 'currentTime';
-      data[currentTimeKey] = parseInt(player.currentTime());
-      log(logEventName, data);
-    };
-    var logOnEvent = function(eventName, logEventName, data) {
-      data = data || {};
-      player.on(eventName, function() {
-          log(logEventName, data);
-      });
-    };
-    function log(eventName, data) {
-        var logInfo = {
-          course_id: args.course_id,
-          video_id: args.video_id,
-        };
-        if (data) {
-          $.extend(logInfo, data);
-        }
-        Logger.log(eventName, logInfo);
-    }
-
-    logTimeOnEvent('seeked', 'seek_video', 'new_time');
-    logTimeOnEvent('ended', 'stop_video');
-    logTimeOnEvent('pause', 'pause_video');
-    logTimeOnEvent('play', 'play_video');
-    logOnEvent('loadstart', 'load_video');
-    log('video_player_ready');
-    // Note that we have no show/hide transcript button, so there is nothing to
-    // log for these events
-
-    player.on('ratechange', function() {
-      logTime('speed_change_video', { newSpeed: player.playbackRate() });
-    });
-
     player.videoJsResolutionSwitcher();
 
     player.seekButtons({
@@ -222,6 +182,7 @@ function VideofrontXBlock(runtime, element, args) {
           data: JSON.stringify({voteType: 'like'}),
           success: updateLikeDislike
       });
+      sendControlsAnalytics("0,0,0,0,0,0,1,0,0,0,0");
     });
     $('.dislike-btn', element).click(function(eventObject) {
       $.ajax({
@@ -230,6 +191,7 @@ function VideofrontXBlock(runtime, element, args) {
           data: JSON.stringify({voteType: 'dislike'}),
           success: updateLikeDislike
       });
+      sendControlsAnalytics("0,0,0,0,0,0,1,0,0,0,0");
     });
 
     // Configure drop down menu
@@ -286,6 +248,7 @@ function VideofrontXBlock(runtime, element, args) {
         data: JSON.stringify({voteType: 'audio'}),
         success: updateReportStatus
       });
+      sendControlsAnalytics("0,0,0,0,0,0,0,1,0,0,0");
     });
     $('.report-video-q', element).click(function(eventObject) {
       $.ajax({
@@ -294,5 +257,19 @@ function VideofrontXBlock(runtime, element, args) {
         data: JSON.stringify({voteType: 'video'}),
         success: updateReportStatus
       });
+      sendControlsAnalytics("0,0,0,0,0,0,0,1,0,0,0");
     });
+    $('.analytics_btn', element).click(function(eventObject) {
+      $('#analytics_cont').css('display','flex');
+    });
+  
+    // Analytics Server Urls
+    getTimelineHandlerUrl = runtime.handlerUrl(element, 'getTimeline');
+    saveTimelineHandlerUrl = runtime.handlerUrl(element, 'saveTimeline');
+    saveTotalWatchTimeHandlerUrl = runtime.handlerUrl(element, 'saveTotalWatchTime');
+    saveMostUsedControlsHandlerUrl = runtime.handlerUrl(element, 'saveMostUsedControls');
+    saveTranscriptDownloadedHandlerUrl = runtime.handlerUrl(element, 'saveTranscriptDownloaded');
+    saveVideoDownloadedHandlerUrl = runtime.handlerUrl(element, 'saveVideoDownloaded');
+
+    $('#avg_watch_time').text(secondsToString(avg_watch_time));
 }
