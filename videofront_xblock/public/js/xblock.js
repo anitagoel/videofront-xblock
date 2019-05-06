@@ -154,4 +154,8 @@ function VideofrontXBlock(runtime, element, args) {
       back: 10
     });
 
+    player.vttThumbnails({
+      src: args.thumbs
+    });
+
 }
