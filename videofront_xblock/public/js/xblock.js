@@ -141,4 +141,9 @@ function VideofrontXBlock(runtime, element, args) {
 
     player.videoJsResolutionSwitcher();
 
+    player.seekButtons({
+      //forward: 30,
+      back: 10
+    });
+
 }

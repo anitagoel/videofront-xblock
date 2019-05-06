@@ -73,10 +73,12 @@ class VideofrontXBlock(StudioEditableXBlockMixin, XBlock):
         fragment.add_content(content)
         fragment.add_css_url(self.runtime.local_resource_url(self, 'public/css/xblock.css'))
         fragment.add_css_url(self.runtime.local_resource_url(self, 'public/css/vendor/videojs-resolution-switcher.css'))
+        fragment.add_css_url(self.runtime.local_resource_url(self, 'public/css/vendor/videojs-seek-buttons.css'))
         fragment.add_css_url('https://vjs.zencdn.net/7.4.1/video-js.css')
         fragment.add_javascript_url('https://vjs.zencdn.net/7.4.1/video.js')
         fragment.add_javascript(self.resource_string('public/js/xblock.js'))
         fragment.add_javascript_url(self.runtime.local_resource_url(self, 'public/js/vendor/videojs-resolution-switcher.js'))
+        fragment.add_javascript(self.resource_string('public/js/vendor/videojs-seek-buttons.min.js'))
         fragment.initialize_js('VideofrontXBlock', json_args={
             'course_id': unicode(self.location.course_key) if hasattr(self, 'location') else '',
             'video_id': video_id,
