@@ -1,6 +1,16 @@
 .videoplayer {
   width: 100%;
   margin-bottom: 1em;
+  background-color: #2C2F31;
+}
+
+.video-container {
+  width: 100%;
+  margin: auto;
+}
+
+.videoplayer.transcript-enabled .video-container {
+  width: 60%;
 }
 
 .videoplayer.transcript-enabled > div:first-child {
@@ -10,22 +20,21 @@
 .videoplayer .transcript {
   display: none;
 
-  height: 370px;
   overflow-y: auto;
-  border: 1px solid #C4BFAB;
-  border-radius: 3px 0px 0px 3px;
-  padding: 2px;
 }
 
 .videoplayer.transcript-enabled .transcript {
   display: block;
   width: 38%;
+  padding: 0% 1%;
 }
 
 .videoplayer .transcript .cue {
   cursor: pointer;
+  color: #aaa;
 }
 
 .videoplayer .transcript .cue.current {
   font-weight: bold;
+  color: #eee;
 }
