@@ -1,5 +1,8 @@
 function VideofrontXBlock(runtime, element, args) {
   'use strict';
+    $(window).resize(function () {
+      $('#tscript').height($('#video').outerHeight(true));
+    });
 
     console.log("videojs:", videojs);
 
@@ -66,8 +69,8 @@ function VideofrontXBlock(runtime, element, args) {
         htmlContent += "<span class='cue' begin='" + cue.startTime + "'>&nbsp;-&nbsp;" + cue.text + "</span><br/>\n";
       }
 
-      player.width("61%");
       videoPlayerElement.addClass("transcript-enabled");
+      $('#tscript').height($('#video').outerHeight(true));
       transcriptElement.html(htmlContent);
 
       // Go to time on cue click
@@ -78,7 +81,7 @@ function VideofrontXBlock(runtime, element, args) {
 
     var disableTranscript = function() {
       videoPlayerElement.removeClass("transcript-enabled");
-      player.width("100%");
+      $('#tscript').height($('#video').outerHeight(true));
     };
 
     var oncuechange = function() {
@@ -96,6 +99,33 @@ function VideofrontXBlock(runtime, element, args) {
         }, 500);
       }
     };
+
+    // Restore height of transcript div after exiting full screen
+    player.on('fullscreenchange', function() {
+      $('#tscript').height($('#video').outerHeight(true));
+    });
+
+    // Play video if player visible
+    var hasBeenPlayed = false;
+    var playVideoIfVisible = function () {
+      var hT = $('#video').offset().top,
+        hH = $('#video').outerHeight(),
+        wH = $(window).height(),
+        wS = $(window).scrollTop();
+      if (wS+wH >= hT && wS <= (hT+hH)){
+        if (!hasBeenPlayed){
+          player.play();
+          hasBeenPlayed = true;
+        }
+      }
+    };
+    player.one('ready', function() {
+      hasBeenPlayed = false;
+      playVideoIfVisible();
+    });
+    $(window).scroll(function() {
+      playVideoIfVisible();
+    });
 
     // Listen to events
     var logTimeOnEvent = function(eventName, logEventName, currentTimeKey, data) {
@@ -144,6 +174,10 @@ function VideofrontXBlock(runtime, element, args) {
     player.seekButtons({
       //forward: 30,
       back: 10
+    });
+
+    player.vttThumbnails({
+      src: args.thumbs
     });
 
 }
