@@ -33,11 +33,13 @@
       <div class="like-btn">
         <i class="fa fa-thumbs-o-up" {% if liked %}style="color: green;"{% endif %} ></i>
       </div>
-      <p class="like-count">{{ like_count }}</p>
+      <span class="like-count">{{ like_count }}</span>
       <div class="dislike-btn">
         <i class="fa fa-thumbs-o-down" {% if disliked %}style="color: red;"{% endif %} ></i>
       </div>
-      <p class="dislike-count">{{ dislike_count }}</p>
+      <span class="dislike-count">{{ dislike_count }}</span>
+      <i class="pip-toggle fa fa-window-maximize" id="togglePipButton" title="Toggle Picture in Picture"></i>
+      <i class="analytics_btn fa fa-bar-chart" title="Video Insights"></i>
       <div class="menu-button">
           <i class="fa fa-ellipsis-h"></i>
           <div class="dropdown-content">
@@ -45,27 +47,26 @@
             <a class="report-optn report-audio-q" href="javascript:void(0);">Report Poor Audio Quality</a>
             <a class="report-optn report-video-q" href="javascript:void(0);">Report Poor Video Quality</a>
             <a class="transcript-toggle" href="javascript:void(0);">Disable Transcript</a>
-            <a class="pip-toggle" id="togglePipButton" href="javascript:void(0);">Toggle Picture in Picture</a>
           </div>
       </div>
     </div>
     {% if video_downloads %}
-    <div style="width: auto; height: auto; float: left; margin-left: 1em;">
+    <div style="width: auto; height: auto; float: left; margin: 1em;">
       <p style="float: left; display: block;">Download video: </p>
-      <div style="padding: 1em; width:10em; height: 4em; float:left;">
+      <div style="padding: 0 0 0 1em; width:10em; height: 4em; float:left;">
         {% for download in video_downloads %}
-        <a href="{{ download.url }}" target="_blank">{{ download.label }}</a>
+        <a href="{{ download.url }}" id="video_download" target="_blank">{{ download.label }}</a>
         {% if not forloop.last %}<br>{% endif %}
         {% endfor %}
       </div>
     </div>
     {% endif %}
     {% if transcript_downloads %}
-    <div style="width: auto; height: auto; float: left; margin-left: 1em;">
+    <div style="width: auto; height: auto; float: left; margin: 1em;">
       <p style="float: left; display: block;">Download Transcript: </p>
-      <div style="padding: 1em; width:10em; height: 4em; float:left;">
+      <div style="padding: 0 0 0 1em; width:10em; height: 4em; float:left;">
         {% for download in transcript_downloads %}
-        <a href="{{ download.url }}" target="_blank">{{ download.language }}</a>
+        <a href="{{ download.url }}" id="transcript_download" target="_blank">{{ download.language }}</a>
         {% if not forloop.last %}<br>{% endif %}
         {% endfor %}
       </div>
@@ -78,29 +79,194 @@
     <p>Poor video quality reports: {{ vid_rep_cnt }}</p>
   </div>
 
+  <div id="analytics_cont">
+    <div id="analytics">
+      <i id="analytics_close_btn" class="fa fa-close" style="position: relative;float: right;color: white"></i>
+      <h3>Video Insights</h3>
+      <h4>Video Heat Map(Clickable)</h4>
+      <div id="timeline">
+        {% if total_timeline %}
+          {% for time, bar in total_timeline %}
+            <div class="watch_bar height{{bar}}" onclick="video.currentTime={{time}};video.requestPictureInPicture()" title="Jump Here" style="width: {{ timeline_bar_width }}vw"></div>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div>
+        <p id="start_time">00:00:00</p>
+        <p id="end_time">00:00</p>
+      </div>
+      <div id="more_insights">
+        <h4>Your Video Insights</h4><br>
+        <div class="data_display">
+          <p>{{ user_views }}</p>
+          <h5>User Views</h5>
+        </div>
+        {% if user_views > 0 %}
+        <div class="data_display">
+            <p>{{ last_watch_date }}</p>
+            <h5>Last Watched</h5>
+        </div>
+        {% endif %}
+        <p id="watch_time_msg"></p><br>
+        <h4 style="clear:both">All Students Video Insights</h4>
+        <div class="data_display">
+            <p>{{ total_views }}</p>
+            <h5>Total Views</h5>
+        </div>
+        {% if total_views > 0 %}
+        <div class="data_display">
+            <p id="avg_watch_time"></p>
+            <h5>Average Watch Time</h5>
+        </div>
+        {% endif %}
+      </div>
+      {% if most_used_controls %}
+      <div style="width: auto; height: auto; float: left; margin: 1em;">
+        <p style="float: left; display: block;">Most Used Controls: </p>
+        {% for control in most_used_controls %}
+        <li style="color: white;">{{ control }}</li>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div style="width: auto; height: auto; float: left; margin: 1em;">
+        <p style="float: left; display: block;">Video Downloads: {{video_downloads_cnt}}</p><br>
+        <p style="float: left; display: block;">Transcript Downloads: {{transcript_downloads_cnt}}</p>
+      </div>
+    </div>
+
 <script>
-  const video = document.getElementById('video');
-  const togglePipButton = document.getElementById('togglePipButton');
+const video = document.getElementById('video');
+const togglePipButton = document.getElementById('togglePipButton');
 
-  // Hide button if Picture-in-Picture is not supported or disabled.
-  togglePipButton.hidden = !document.pictureInPictureEnabled ||
-    video.disablePictureInPicture;
+// Hide button if Picture-in-Picture is not supported or disabled.
+togglePipButton.hidden = !document.pictureInPictureEnabled ||
+  video.disablePictureInPicture;
 
-  togglePipButton.addEventListener('click', function() {
-    // If there is no element in Picture-in-Picture yet, let’s request
-    // Picture-in-Picture for the video, otherwise leave it.
-    if (!document.pictureInPictureElement) {
-      video.requestPictureInPicture()
-      .catch(error => {
-        // Video failed to enter Picture-in-Picture mode.
-      });
-    } else {
-      document.exitPictureInPicture()
-      .catch(error => {
-        // Video failed to leave Picture-in-Picture mode.
-      });
+togglePipButton.addEventListener('click', function() {
+  // If there is no element in Picture-in-Picture yet, let’s request
+  // Picture-in-Picture for the video, otherwise leave it.
+  if (!document.pictureInPictureElement) {
+    video.requestPictureInPicture()
+    .catch(error => {
+      // Video failed to enter Picture-in-Picture mode.
+    });
+  } else {
+    document.exitPictureInPicture()
+    .catch(error => {
+      // Video failed to leave Picture-in-Picture mode.
+    });
+  }
+  sendControlsAnalytics("0,0,0,0,0,0,0,0,1,0,0");
+});
+
+// Implememt Analytics
+var timeline = [0];
+video.onloadedmetadata = function() {
+  var length = Math.floor(video.duration);
+  // Set duration in analytics page
+  var end_time = new Date(length * 1000).toISOString().substr(11, 8);
+  $('#end_time').text(end_time);
+  var t_timeline = [0];
+  for (let i = timeline.length; i <= length; i++){
+    timeline.push(0);
+    t_timeline.push(0);
+  }
+  var data = t_timeline.toString();
+    saveTimeline(data);
+};
+var prev = -1, count = 0;
+video.ontimeupdate = function() {
+  var curr = Math.floor(video.currentTime);
+  if (curr != prev) {
+    timeline[curr] = timeline[curr] + 1;
+    prev = curr;
+    count++;
+    if (count % 10 == 0){ // Send analytics every 10 seconds
+      var data = timeline.toString();
+      saveTimeline(data);
     }
+  }
+};
+
+video.onended = function() { // Send total watch time analytics
+  var totalTime = 0;
+  timeline.forEach(element => {
+    totalTime += element;
   });
+  saveTotalWatchTime(totalTime);
+  // Display in analytics
+  var msg = "You watched this " + secondsToString(Math.floor(video.duration)) + " video in " + secondsToString(totalTime);
+  $('#watch_time_msg').text(msg);
+};
+
+function secondsToString(seconds){
+  var time = "";
+  var mins = Math.floor(seconds / 60);
+  var secs = seconds % 60;
+  if (mins == 1)
+    time += mins + " minute";
+  else if (mins > 1)
+    time += mins + " minutes";
+  if (secs > 0 && mins > 0)
+    time += " and ";
+  if (secs == 1)
+    time += secs + " second";
+  else if (secs > 1)
+    time += secs + " seconds";
+  return time;
+}
+
+function saveTimeline(d) {
+  $.ajax({
+    type: "POST",
+    url: saveTimelineHandlerUrl,
+    data: JSON.stringify({timeline: d})
+  });
+};
+
+function saveTotalWatchTime(data) {
+  var d = new Date();
+  var seconds = Math.round(d.getTime() / 1000);
+  $.ajax({
+    type: "POST",
+    url: saveTotalWatchTimeHandlerUrl,
+    data: JSON.stringify({watchTime: data, watchDate: seconds})
+  });
+};
+
+$('#analytics_close_btn').click(function(){
+  $('#analytics_cont').css('display','none');
+});
+
+function sendControlsAnalytics(data){
+  $.ajax({
+    type: "POST",
+    url: saveMostUsedControlsHandlerUrl,
+    data: JSON.stringify({controls: data})
+  });
+}
+
+$('#transcript_download').click(function(eventObject) {
+  $.ajax({
+    type: "POST",
+    url: saveTranscriptDownloadedHandlerUrl,
+    data: JSON.stringify({download: 1})
+  });
+});
+
+$('#video_download').click(function(eventObject) {
+  $.ajax({
+    type: "POST",
+    url: saveVideoDownloadedHandlerUrl,
+    data: JSON.stringify({download: 1})
+  });
+});
+
+video.onplay = function(){ sendControlsAnalytics("1,0,0,0,0,0,0,0,0,0,0") };
+video.onpause = function(){ sendControlsAnalytics("1,0,0,0,0,0,0,0,0,0,0") };
+video.onvolumechange = function(){ sendControlsAnalytics("0,1,0,0,0,0,0,0,0,0,0") };
+video.onratechange = function(){ sendControlsAnalytics("0,0,1,0,0,0,0,0,0,0,0") };
+video.onseeked = function(){ sendControlsAnalytics("0,0,0,1,0,0,0,0,0,0,0") };
 </script>
 
 </div>
