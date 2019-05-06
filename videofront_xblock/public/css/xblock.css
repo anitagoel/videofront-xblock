@@ -1,6 +1,5 @@
 .videoplayer {
   width: 100%;
-  margin-bottom: 1em;
   background-color: #2C2F31;
 }
 
@@ -37,4 +36,87 @@
 .videoplayer .transcript .cue.current {
   font-weight: bold;
   color: #eee;
+}
+
+.extra-controls {
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+  margin-bottom: 1em;
+}
+
+.like-btn {
+  float: left;
+  padding: .40em;
+}
+
+.dislike-btn {
+  float: left;
+  padding: .40em;
+}
+
+.like-count {
+  float: left;
+  font-size: .75em;
+  margin: .8em .75em .8em 0;
+}
+
+.dislike-count {
+  float: left;
+  font-size: .75em;
+  margin: .8em .50em .8em 0;
+}
+
+.rate-and-report {
+  float: left;
+  width: auto;
+  height: auto;
+  margin: 1em;
+  border-style: solid;
+  border-color: #aaa;
+  border-width: 1px;
+  border-radius: 3px;
+}
+
+.menu-button {
+  float: left;
+  width: auto;
+  height: auto;
+  padding: .45em .5em .45em .5em;
+  border-style: solid;
+  border-color: #aaa;
+  border-width: 0px 0px 0px 1px;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 8px 12px;
+  text-decoration: none;
+  display: block;
+  font-size: .75em;
+}
+
+.dropdown-content a:hover {background-color: #bbb;}
+
+.report-optn{
+  background-color: #ddd;
+}
+
+.info-for-author {
+  display: none;
+  width: 100%;
+  height: auto;
+}
+
+.pip-toggle {
+  display: none;
 }
