@@ -5,12 +5,14 @@
   {% endfor %}
 
   <div class="videoplayer">
-    <div class="video-container" id="video">
+    <div class="video-container" id="video-cont">
       <video
+        oncontextmenu="return false;"
         class="video-js vjs-default-skin vjs-big-play-centered vjs-16-9"
+        id="video"
         controls
         preload="none"
-        poster="{{ video.poster }}"
+        poster="{{ video.thumbnail }}"
         data-setup='{ "playbackRates": [0.5, 1, 1.5, 2] }'
         crossorigin="anonymous"
         >
@@ -26,13 +28,79 @@
 
     <div class="transcript" id="tscript"></div>
   </div>
+  <div class="extra-controls">
+    <div class="rate-and-report">
+      <div class="like-btn">
+        <i class="fa fa-thumbs-o-up" {% if liked %}style="color: green;"{% endif %} ></i>
+      </div>
+      <p class="like-count">{{ like_count }}</p>
+      <div class="dislike-btn">
+        <i class="fa fa-thumbs-o-down" {% if disliked %}style="color: red;"{% endif %} ></i>
+      </div>
+      <p class="dislike-count">{{ dislike_count }}</p>
+      <div class="menu-button">
+          <i class="fa fa-ellipsis-h"></i>
+          <div class="dropdown-content">
+            <a class="report-btn" href="javascript:void(0);">Report</a>
+            <a class="report-optn report-audio-q" href="javascript:void(0);">Report Poor Audio Quality</a>
+            <a class="report-optn report-video-q" href="javascript:void(0);">Report Poor Video Quality</a>
+            <a class="transcript-toggle" href="javascript:void(0);">Disable Transcript</a>
+            <a class="pip-toggle" id="togglePipButton" href="javascript:void(0);">Toggle Picture in Picture</a>
+          </div>
+      </div>
+    </div>
+    {% if video_downloads %}
+    <div style="width: auto; height: auto; float: left; margin-left: 1em;">
+      <p style="float: left; display: block;">Download video: </p>
+      <div style="padding: 1em; width:10em; height: 4em; float:left;">
+        {% for download in video_downloads %}
+        <a href="{{ download.url }}" target="_blank">{{ download.label }}</a>
+        {% if not forloop.last %}<br>{% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    {% if transcript_downloads %}
+    <div style="width: auto; height: auto; float: left; margin-left: 1em;">
+      <p style="float: left; display: block;">Download Transcript: </p>
+      <div style="padding: 1em; width:10em; height: 4em; float:left;">
+        {% for download in transcript_downloads %}
+        <a href="{{ download.url }}" target="_blank">{{ download.language }}</a>
+        {% if not forloop.last %}<br>{% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
 
-  {% if downloads %}
-  <p>Download video:
-    {% for download in downloads %}
-    <a href="{{ download.url }}" target="_blank">{{ download.label }}</a>
-    {% if not forloop.last %}/{% endif %}
-    {% endfor %}
-  </p>
-  {% endif %}
+  <div class="info-for-author">
+    <p>Poor audio quality reports: {{ aud_rep_cnt }}</p>
+    <p>Poor video quality reports: {{ vid_rep_cnt }}</p>
+  </div>
+
+<script>
+  const video = document.getElementById('video');
+  const togglePipButton = document.getElementById('togglePipButton');
+
+  // Hide button if Picture-in-Picture is not supported or disabled.
+  togglePipButton.hidden = !document.pictureInPictureEnabled ||
+    video.disablePictureInPicture;
+
+  togglePipButton.addEventListener('click', function() {
+    // If there is no element in Picture-in-Picture yet, let’s request
+    // Picture-in-Picture for the video, otherwise leave it.
+    if (!document.pictureInPictureElement) {
+      video.requestPictureInPicture()
+      .catch(error => {
+        // Video failed to enter Picture-in-Picture mode.
+      });
+    } else {
+      document.exitPictureInPicture()
+      .catch(error => {
+        // Video failed to leave Picture-in-Picture mode.
+      });
+    }
+  });
+</script>
+
 </div>
