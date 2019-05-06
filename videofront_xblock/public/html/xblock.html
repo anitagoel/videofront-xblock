@@ -5,26 +5,26 @@
   {% endfor %}
 
   <div class="videoplayer">
-    <video
-      class="video-js vjs-default-skin vjs-big-play-centered"
-      controls
-      preload="none"
-      width="100%"
-      height="375px"
-      poster="{{ video.thumbnail }}"
-      data-setup='{ "playbackRates": [0.5, 1, 1.5, 2] }'
-      crossorigin="anonymous"
-      >
-      {% for source in video.formats %}
-      <source src="{{ source.url }}" type="video/mp4" label="{{ source.name }}" res="{{ source.bitrate }}"/>
-      {% endfor %}
-      {% for subtitle in video.subtitles %}
-      <track src="{{ subtitle.url }}" kind="subtitles" srclang="{{ subtitle.language }}" label="{{ subtitle.language}}">
-      {% endfor %}
-      <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
-    </video>
+    <div class="video-container" id="video">
+      <video
+        class="video-js vjs-default-skin vjs-big-play-centered vjs-16-9"
+        controls
+        preload="none"
+        poster="{{ video.poster }}"
+        data-setup='{ "playbackRates": [0.5, 1, 1.5, 2] }'
+        crossorigin="anonymous"
+        >
+        {% for source in video.formats %}
+        <source src="{{ source.url }}" type="video/mp4" label="{{ source.name }}" res="{{ source.bitrate }}"/>
+        {% endfor %}
+        {% for subtitle in video.subtitles %}
+        <track src="{{ subtitle.url }}" kind="subtitles" srclang="{{ subtitle.language }}" label="{{ subtitle.language}}">
+        {% endfor %}
+        <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
+      </video>
+    </div>
 
-    <div class="transcript"></div>
+    <div class="transcript" id="tscript"></div>
   </div>
 
   {% if downloads %}

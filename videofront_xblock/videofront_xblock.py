@@ -61,7 +61,7 @@ class VideofrontXBlock(StudioEditableXBlockMixin, XBlock):
         }
         # It is a common mistake to define video ids suffixed with empty spaces
         video_id = None if self.video_id is None else self.video_id.strip()
-        context['video'], context['messages'] = self.get_video_context(video_id)
+        context['video'], context['messages'], thumbs = self.get_video_context(video_id)
         context['downloads'] = self.get_downloads_context(context['video']) if self.allow_download else []
 
         # 2) Render template
@@ -74,14 +74,17 @@ class VideofrontXBlock(StudioEditableXBlockMixin, XBlock):
         fragment.add_css_url(self.runtime.local_resource_url(self, 'public/css/xblock.css'))
         fragment.add_css_url(self.runtime.local_resource_url(self, 'public/css/vendor/videojs-resolution-switcher.css'))
         fragment.add_css_url(self.runtime.local_resource_url(self, 'public/css/vendor/videojs-seek-buttons.css'))
+        fragment.add_css_url(self.runtime.local_resource_url(self, 'public/css/vendor/videojs-vtt-thumbnails.css'))
         fragment.add_css_url('https://vjs.zencdn.net/7.4.1/video-js.css')
         fragment.add_javascript_url('https://vjs.zencdn.net/7.4.1/video.js')
         fragment.add_javascript(self.resource_string('public/js/xblock.js'))
         fragment.add_javascript_url(self.runtime.local_resource_url(self, 'public/js/vendor/videojs-resolution-switcher.js'))
         fragment.add_javascript(self.resource_string('public/js/vendor/videojs-seek-buttons.min.js'))
+        fragment.add_javascript(self.resource_string('public/js/vendor/videojs-vtt-thumbnails.min.js'))
         fragment.initialize_js('VideofrontXBlock', json_args={
             'course_id': unicode(self.location.course_key) if hasattr(self, 'location') else '',
             'video_id': video_id,
+            'thumbs': thumbs,
         })
 
         return fragment
@@ -112,9 +115,10 @@ class VideofrontXBlock(StudioEditableXBlockMixin, XBlock):
         """
         messages = []
         video = {}
+        thumbs = ""
         if not video_id:
             messages.append(('warning', ugettext_lazy("You need to define a valid Videofront video ID.")))
-            return video, messages
+            return video, messages, thumbs
         settings = self.runtime.service(self, "settings").get_settings_bucket(self)
         api_host = settings.get('HOST')
         api_token = settings.get('TOKEN')
@@ -123,13 +127,13 @@ class VideofrontXBlock(StudioEditableXBlockMixin, XBlock):
                 'warning',
                 ugettext_lazy("Undefined Videofront hostname. Contact your platform administrator.")
             ))
-            return video, messages
+            return video, messages, thumbs
         if not api_token:
             messages.append((
                 'warning',
                 ugettext_lazy("Undefined Videofront auth token. Contact your platform administrator.")
             ))
-            return video, messages
+            return video, messages, thumbs
 
 
         try:
@@ -145,7 +149,7 @@ class VideofrontXBlock(StudioEditableXBlockMixin, XBlock):
                 ugettext_lazy("Could not reach Videofront server. Contact your platform administrator")
             ))
             logger.error("Could not connect to Videofront: %s", e)
-            return video, messages
+            return video, messages, thumbs
 
         if api_response.status_code >= 400:
             if api_response.status_code == 403:
@@ -155,10 +159,11 @@ class VideofrontXBlock(StudioEditableXBlockMixin, XBlock):
             else:
                 messages.append(('error', ugettext_lazy("An unknown error has occurred")))
                 logger.error("Received error %d: %s", api_response.status_code, api_response.content)
-            return video, messages
+            return video, messages, thumbs
 
         # Check processing status is correct
         video = json.loads(api_response.content)
+        thumbs = video['thumbnails']
         processing_status = video['processing']['status']
         if processing_status == 'processing':
             messages.append((
@@ -171,7 +176,7 @@ class VideofrontXBlock(StudioEditableXBlockMixin, XBlock):
                 ugettext_lazy("Video processing failed: try again with a different video ID")
             ))
 
-        return video, messages
+        return video, messages, thumbs
 
     def get_downloads_context(self, video):
         """
